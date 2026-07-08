@@ -1,6 +1,7 @@
 import os
 import random
 from functools import reduce
+from itertools import product
 from datetime import datetime
 from typing import List
 from .io import get_dir_files
@@ -26,6 +27,28 @@ def apply_basename(
         cmd_list[cmd_idx] = cmd.replace(token, os.path.basename(path))
     
     return cmd_list
+
+
+def apply_cartesian_product(cmd_list: List[str], **kwargs) -> List[str]:
+    # Combine values
+    keys = kwargs.keys()
+    values = kwargs.values()
+    prod = [dict(zip(keys, combo)) for combo in product(*values)]
+
+    # Generatecommands
+    cmd_list_expanded = []
+
+    for cmd in cmd_list:
+        for instance_idx in range(len(prod)):
+            expanded_cmd = cmd
+
+            for token, values in kwargs.items():
+                expanded_cmd =\
+                    expanded_cmd.replace(token, str(values[instance_idx]))
+            
+            cmd_list_expanded.append(expanded_cmd)
+    
+    return cmd_list_expanded
 
 
 def apply_date(
@@ -345,6 +368,7 @@ def get_apply_registy() -> dict:
     """
     return {
         "basename": apply_basename,
+        "cartesian_product": apply_cartesian_product,
         "date": apply_date,
         "dir_files": apply_dir_files,
         "index": apply_index,
