@@ -1,0 +1,9 @@
+minimum_required_version: 0.1.2
+
+recipe:
+  step:
+    env:
+      USER_VAR: !prompt
+        message: Introduce variable value
+    run:
+      - "echo 'print user variable: $USER_VAR'"

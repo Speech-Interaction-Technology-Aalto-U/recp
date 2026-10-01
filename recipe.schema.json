@@ -1,0 +1,764 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/eagomez2/recp/main/recipe.schema.json",
+  "title": "recp recipe",
+  "type": "object",
+  "properties": {
+    "minimum_required_version": {
+      "type": [
+        "string",
+        "number"
+      ],
+      "description": "Minimum recp version required."
+    },
+    "env": {
+      "type": "object",
+      "description": "Environmental variables shared by all steps.",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": [
+              "string",
+              "number",
+              "boolean"
+            ]
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array"
+          },
+          {
+            "type": "object"
+          }
+        ]
+      }
+    },
+    "recipe": {
+      "type": "object",
+      "description": "Steps of the recipe.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              }
+            ],
+            "description": "Tag(s) used to select steps with --tag."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the step."
+          },
+          "env": {
+            "type": "object",
+            "description": "Environmental variables.",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                },
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "array"
+                },
+                {
+                  "type": "object"
+                }
+              ]
+            }
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Folder where the commands are run."
+          },
+          "parallel": {
+            "description": "Number of commands run at a time, or 'auto' to use all CPU cores.",
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "const": "auto"
+              }
+            ]
+          },
+          "run": {
+            "description": "Commands to be run.",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "cmd": {
+                          "type": "string",
+                          "description": "Command to be run."
+                        },
+                        "apply": {
+                          "type": "array",
+                          "description": "Modifiers applied to the command.",
+                          "items": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "description": "Replaces a token by the basename of a path.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "basename"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "token": {
+                                        "type": "string",
+                                        "description": "Token to be replaced."
+                                      },
+                                      "path": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "token",
+                                      "path"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Generates one command per combination of the values of all tokens.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "cartesian_product"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {},
+                                    "required": [],
+                                    "additionalProperties": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": [
+                                          "string",
+                                          "number",
+                                          "boolean"
+                                        ]
+                                      }
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Replaces a token by the current date.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "date"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "token": {
+                                        "type": "string",
+                                        "description": "Token to be replaced."
+                                      },
+                                      "format": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    "required": [
+                                      "token"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Generates one command per file in a folder.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "dir_files"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "token": {
+                                        "type": "string",
+                                        "description": "Token to be replaced."
+                                      },
+                                      "dir": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "items": {
+                                              "type": [
+                                                "string",
+                                                "number",
+                                                "boolean"
+                                              ]
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "ext": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "items": {
+                                              "type": [
+                                                "string",
+                                                "number",
+                                                "boolean"
+                                              ]
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      "recursive": {
+                                        "type": "boolean"
+                                      },
+                                      "name_token": {
+                                        "type": "string",
+                                        "description": "Token replaced by the file name."
+                                      },
+                                      "stem_token": {
+                                        "type": "string",
+                                        "description": "Token replaced by the file name without extension."
+                                      },
+                                      "rel_token": {
+                                        "type": "string",
+                                        "description": "Token replaced by the path relative to dir."
+                                      },
+                                      "rel_dir_token": {
+                                        "type": "string",
+                                        "description": "Token replaced by the folder relative to dir."
+                                      }
+                                    },
+                                    "required": [
+                                      "token",
+                                      "dir"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Replaces a token by the command index.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "index"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "token": {
+                                        "type": "string",
+                                        "description": "Token to be replaced."
+                                      },
+                                      "offset": {
+                                        "type": [
+                                          "integer",
+                                          "string"
+                                        ]
+                                      },
+                                      "zfill": {
+                                        "type": [
+                                          "integer",
+                                          "string"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "token"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Replaces a token based on the value of a variable.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "match"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "var": {
+                                        "type": [
+                                          "string",
+                                          "number",
+                                          "boolean"
+                                        ]
+                                      },
+                                      "token": {
+                                        "type": "string",
+                                        "description": "Token to be replaced."
+                                      },
+                                      "choices": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": [
+                                            "string",
+                                            "number",
+                                            "boolean"
+                                          ]
+                                        }
+                                      },
+                                      "values": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": [
+                                            "string",
+                                            "number",
+                                            "boolean"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "var",
+                                      "token",
+                                      "choices",
+                                      "values"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Replaces a token by the parent folder of a path.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "parent_dir"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "token": {
+                                        "type": "string",
+                                        "description": "Token to be replaced."
+                                      },
+                                      "path": {
+                                        "type": "string"
+                                      },
+                                      "n": {
+                                        "type": [
+                                          "integer",
+                                          "string"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "token",
+                                      "path"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Replaces a token by a random choice.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "randchoice"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "token": {
+                                        "type": "string",
+                                        "description": "Token to be replaced."
+                                      },
+                                      "choices": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": [
+                                            "string",
+                                            "number",
+                                            "boolean"
+                                          ]
+                                        }
+                                      },
+                                      "seed": {
+                                        "type": [
+                                          "integer",
+                                          "null"
+                                        ],
+                                        "description": "Random seed."
+                                      }
+                                    },
+                                    "required": [
+                                      "token",
+                                      "choices"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Replaces a token by a random integer in [min, max].",
+                                "properties": {
+                                  "fn": {
+                                    "const": "randint"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "token": {
+                                        "type": "string",
+                                        "description": "Token to be replaced."
+                                      },
+                                      "min": {
+                                        "type": [
+                                          "integer",
+                                          "string"
+                                        ]
+                                      },
+                                      "max": {
+                                        "type": [
+                                          "integer",
+                                          "string"
+                                        ]
+                                      },
+                                      "seed": {
+                                        "type": [
+                                          "integer",
+                                          "null"
+                                        ],
+                                        "description": "Random seed."
+                                      }
+                                    },
+                                    "required": [
+                                      "token",
+                                      "min",
+                                      "max"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Replaces a token by a random float in [min, max).",
+                                "properties": {
+                                  "fn": {
+                                    "const": "randfloat"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "token": {
+                                        "type": "string",
+                                        "description": "Token to be replaced."
+                                      },
+                                      "min": {
+                                        "type": [
+                                          "number",
+                                          "string"
+                                        ]
+                                      },
+                                      "max": {
+                                        "type": [
+                                          "number",
+                                          "string"
+                                        ]
+                                      },
+                                      "seed": {
+                                        "type": [
+                                          "integer",
+                                          "null"
+                                        ],
+                                        "description": "Random seed."
+                                      }
+                                    },
+                                    "required": [
+                                      "token",
+                                      "min",
+                                      "max"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Replaces tokens by values. Lists generate one command per value.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "replace"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {},
+                                    "required": [],
+                                    "additionalProperties": {
+                                      "anyOf": [
+                                        {
+                                          "type": [
+                                            "string",
+                                            "number",
+                                            "boolean"
+                                          ]
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "type": [
+                                              "string",
+                                              "number",
+                                              "boolean"
+                                            ]
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Repeats the command n times.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "repeat"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "n": {
+                                        "type": [
+                                          "integer",
+                                          "string"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "n"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Keeps the command only if a variable has a given value.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "run_if"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "var": {
+                                        "type": [
+                                          "string",
+                                          "number",
+                                          "boolean"
+                                        ]
+                                      },
+                                      "value": {
+                                        "anyOf": [
+                                          {
+                                            "type": [
+                                              "string",
+                                              "number",
+                                              "boolean"
+                                            ]
+                                          },
+                                          {
+                                            "type": "array",
+                                            "items": {
+                                              "type": [
+                                                "string",
+                                                "number",
+                                                "boolean"
+                                              ]
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "var",
+                                      "value"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "object",
+                                "description": "Keeps only one shard of the commands.",
+                                "properties": {
+                                  "fn": {
+                                    "const": "shard"
+                                  },
+                                  "args": {
+                                    "type": "object",
+                                    "properties": {
+                                      "index": {
+                                        "type": [
+                                          "integer",
+                                          "string"
+                                        ]
+                                      },
+                                      "num": {
+                                        "type": [
+                                          "integer",
+                                          "string"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "index",
+                                      "num"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                },
+                                "required": [
+                                  "fn"
+                                ],
+                                "additionalProperties": false
+                              }
+                            ]
+                          }
+                        },
+                        "skip_if_exists": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": [
+                                  "string",
+                                  "number",
+                                  "boolean"
+                                ]
+                              }
+                            }
+                          ],
+                          "description": "Skip the command if these paths exist."
+                        }
+                      },
+                      "required": [
+                        "cmd"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "required": [
+          "run"
+        ],
+        "additionalProperties": false
+      },
+      "minProperties": 1
+    }
+  },
+  "required": [
+    "recipe"
+  ],
+  "additionalProperties": true
+}

@@ -1,0 +1,9 @@
+minimum_required_version: 0.3.0
+
+env:
+  RUN_ID: !now "%Y%m%d-%H%M"
+
+recipe:
+  step:
+    run:
+      - echo 'Saving results to results/$RUN_ID'

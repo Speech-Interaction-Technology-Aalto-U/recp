@@ -1,0 +1,12 @@
+minimum_required_version: 0.1.2
+
+recipe:
+  step:
+    env:
+      CHOICE: !prompt
+        message: Favourite pet
+        choices:
+          - cat
+          - dog
+    run:
+      - "echo 'You are a $CHOICE person'"

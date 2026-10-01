@@ -1,0 +1,17 @@
+minimum_required_version: 0.3.0
+
+recipe:
+  step:
+    parallel: 2
+    run:
+      - cmd: echo 'Found __NAME__ in folder __REL_DIR__'
+        skip_if_exists: __STEM__.done
+        apply:
+          - fn: dir_files
+            args:
+              token: __FILE__
+              dir: .
+              ext: yaml
+              name_token: __NAME__
+              stem_token: __STEM__
+              rel_dir_token: __REL_DIR__

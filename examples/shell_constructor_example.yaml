@@ -1,0 +1,8 @@
+minimum_required_version: 0.3.0
+
+recipe:
+  step:
+    env:
+      COMMIT: !shell git rev-parse --short HEAD
+    run:
+      - echo 'Current commit is $COMMIT'

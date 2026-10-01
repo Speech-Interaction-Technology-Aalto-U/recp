@@ -1,0 +1,11 @@
+minimum_required_version: 0.1.0
+
+recipe:
+  step:
+    env:
+      USER_VAR: !input
+        name: USER_VAR
+        default: default_value
+        required: false
+    run:
+      - "echo 'print user variable: $USER_VAR'"

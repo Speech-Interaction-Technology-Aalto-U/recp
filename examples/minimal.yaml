@@ -1,0 +1,19 @@
+minimum_required_version: 0.1.0
+
+recipe:
+  first_step:
+      env:
+        YOUR_NAME: !input
+          name: MY_NAME
+          default: Juhani
+      run:
+        - echo "Hello, my name is $YOUR_NAME"
+
+  second_step:
+      run:
+        - cmd: echo "The current year is {YEAR}"
+          apply:
+            - fn: date
+              args:
+                token: "{YEAR}"
+                format: "%Y"

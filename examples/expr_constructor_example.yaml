@@ -1,0 +1,8 @@
+minimum_required_version: 0.1.0
+
+recipe:
+  step:
+    env:
+      RESULT: !expr 24 * 60 * 60
+    run:
+      - echo 'A day has $RESULT seconds'

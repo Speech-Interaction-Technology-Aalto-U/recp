@@ -1,0 +1,10 @@
+minimum_required_version: 0.3.0
+
+recipe:
+  step:
+    run:
+      - cmd: echo 'Processing speaker __SPEAKER__'
+        apply:
+          - fn: replace
+            args:
+              __SPEAKER__: !lines speakers.txt
