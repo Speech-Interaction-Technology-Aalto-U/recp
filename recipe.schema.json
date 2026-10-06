@@ -92,7 +92,7 @@
             "description": "Folder where the commands are run."
           },
           "parallel": {
-            "description": "Number of commands run at a time, or 'auto' to use all CPU cores.",
+            "description": "Number of commands run at a time, or 'auto' to use all CPU cores. The output of each command is saved and can be shown with 'recp status', 'recp log' and 'recp follow'.",
             "anyOf": [
               {
                 "type": "integer",
@@ -736,6 +736,13 @@
                             }
                           ],
                           "description": "Skip the command if these paths exist."
+                        },
+                        "label": {
+                          "type": [
+                            "string",
+                            "number"
+                          ],
+                          "description": "Short name shown for the command in parallel steps. Tokens replaced by modifiers in 'cmd' are also replaced here."
                         }
                       },
                       "required": [

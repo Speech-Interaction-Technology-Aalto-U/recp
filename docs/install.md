@@ -1,21 +1,23 @@
 # Installation
 
-## Install using pip
-The easiest way to install `recp` is through `pip` by running:
+## Install with uv (recommended)
+`recp` is a command-line tool, so it is best installed as a [`uv` tool](https://docs.astral.sh/uv/concepts/tools/). This installs it in its own isolated environment and makes the `recp` command available everywhere. If you don't have `uv` yet, follow the <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">`uv` installation instructions</a> for your operating system.
 
-```bash
-pip install recp
+Then run:
+
+```
+uv tool install recp
 ```
 
-After installing `recp` you can verify the installation by running:
+To verify the installation, run:
 
-```bash
+```
 recp --version
 ```
 
 This should output:
 
-```bash
+```text
 recp version x.y.z yyyy-zzzz developed by Esteban Gómez (Speech Interaction Technology, Aalto University)
 ```
 
@@ -24,40 +26,24 @@ Where:
 - `x.y.z` represents the major, minor, and patch version.
 - `yyyy-zzzz` indicates the development start year and the current year.
 
-## Install using uv 
+To upgrade `recp` to the latest version, run:
 
-`uv` is a modern python package manager. You can see more details about `uv` in [the official documentation](https://docs.astral.sh/uv/).
-
-First, you need to install `uv` and `uvx` following the instructions for your operating system in <a href="https://docs.astral.sh/uv/getting-started/installation/" target="_blank">`uv` website</a>.
-
-Then run:
-
-```bash
-uv tool install recp
+```
+uv tool upgrade recp
 ```
 
-You can verify the installation running:
+`recp` can also be run once without installing it, using `uvx`:
 
-```bash
-uv tool run recp --version
 ```
-
-or you can use the shortcut version `uvx`:
-
-```bash
 uvx recp --version
 ```
 
-This should output:
+## Install with pip
+Alternatively, `recp` can be installed into the current Python environment with `pip`:
 
-```bash
-recp version x.y.z yyyy-zzzz developed by Esteban Gómez (Speech Interaction Technology, Aalto University)
 ```
-
-Where:
-
-- `x.y.z` represents the major, minor, and patch version.
-- `yyyy-zzzz` indicates the development start year and the current year.
+pip install recp
+```
 
 ## What's next
 Now that you have installed `recp`, check the [Quickstart](quickstart.md) section to begin using it.

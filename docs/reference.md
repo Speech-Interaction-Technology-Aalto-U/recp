@@ -3,7 +3,7 @@ A recipe file with all available fields is shown below. Each field is described 
 
 
 ```yaml title="recipe.yaml with all available fields"
-minimum_required_version: 0.3.0
+minimum_required_version: 0.4.0
 
 env:
   OUTPUT_DIR: ~/output
@@ -36,41 +36,44 @@ recipe:
 A recipe file is a `.yaml` file where:
 
 - `minimum_required_version` is an **optional** field specifying the minimum `recp` version required to run it.
-- `env` is an **optional** field containing environmental variables shared by all steps. A step can override them in its own `env` key.
+- `env` is an **optional** field containing environment variables shared by all steps. A step can override them in its own `env` key.
 - `recipe` is the **required** root key containing the description of each step to be run.
 
 Each step has:
 
 - A **required** name key (`first_step`) containing the information relative to that particular step.
-- An **optional** `tag` key containing a `str` or a `list` of `str`, each one corresponding to a tag that can be use to select a certain subset of steps to be run with the `--tag` option.
-- An **optional** `description` key containing a `str` that describes that the step does. This is only for documentation purposes, and will be printed to the terminal when the recipe is run.
-- An **optional** `env` key containing environmental variables to be used in that step. They are expanded in the commands and also passed to the processes run by the commands. The environmental variables of a specific step are isolated from all other steps. To share variables across steps you can use the recipe-level `env` key. Additionally, environmental variables can be defined directly in the `.yaml` file, or defined by the user when running the recipe. User defined variables can be configured using the `!input` constructor that has a mandatory `name` key, and an optional `default` key to define the default value, and an optional `required` key containing a `bool` value to specify whether that variable is required or optional.
+- An **optional** `tag` key containing a `str` or a `list` of `str`, each one corresponding to a tag that can be used to select a certain subset of steps to be run with the `--tag` option.
+- An **optional** `description` key containing a `str` that describes what the step does. This is only for documentation purposes, and is printed to the terminal when the recipe is run.
+- An **optional** `env` key containing environment variables to be used in that step. They are expanded in the commands and also passed to the processes run by the commands. The environment variables of a specific step are isolated from all other steps. To share variables across steps you can use the recipe-level `env` key. Additionally, environment variables can be defined directly in the `.yaml` file, or defined by the user when running the recipe. User defined variables can be configured using the `!input` constructor that has a mandatory `name` key, and an optional `default` key to define the default value, and an optional `required` key containing a `bool` value to specify whether that variable is required or optional.
 - An **optional** `cwd` key containing the folder where the commands of that step are run.
 - An **optional** `parallel` key containing the number of commands of that step run at the same time (see [Parallel commands](#parallel-commands)).
-- A **required** `run` key that contains a `str` or a `list` of the commands to be run. A command can be a `str` or a `dict` containing the `cmd` key and the `apply` key containing a `list` of modifiers to be applied to that command as a pre-processing step to generate one or multiple commands. Each modifier is defined by a `fn` key with the modifier function name, and an `args` key with the corresponding arguments. A `dict` command can also contain a `skip_if_exists` key (see [Skipping existing outputs](#skipping-existing-outputs)).
+- A **required** `run` key that contains a `str` or a `list` of the commands to be run. A command can be a `str` or a `dict` containing the `cmd` key and the `apply` key containing a `list` of modifiers to be applied to that command as a pre-processing step to generate one or multiple commands. Each modifier is defined by a `fn` key with the modifier function name, and an `args` key with the corresponding arguments. A `dict` command can also contain a `skip_if_exists` key (see [Skipping existing outputs](#skipping-existing-outputs)) and a `label` key (see [Command labels](#command-labels)).
 
-Environmental variables such as `$HOME` or `$USER_NAME` are expanded by `recp` before the commands are run. Use `$$` to pass a literal `$` to the command instead. The `RECP_RECIPE_FILE` variable contains the absolute path to the recipe file being run.
+Environment variables such as `$HOME` or `$USER_NAME` are expanded by `recp` before the commands are run. Use `$$` to pass a literal `$` to the command instead. The `RECP_RECIPE_FILE` variable contains the absolute path to the recipe file being run.
 
 A recipe can be run using:
-```bash
+
+```
 recp run /path/to/your/recipe.yaml
 ```
 
 Additionally, you can show the commands without running them with the `--dry-run` option, that can be used for debugging purposes.
 
-```bash
+```
 recp run /path/to/your/recipe.yaml --dry-run 
 ```
 
 To filter steps by tag, you can use:
-```bash
+
+```
 recp run /path/to/your/recipe.yaml --tag first 
 ```
 
 This will only collect steps containing the tag `first`. Multiple tags can be used to filter a step, in which case only steps containing all of them will be selected. 
 
 To run only some steps by name, or to resume a recipe from a given step, you can use:
-```bash
+
+```
 recp run /path/to/your/recipe.yaml --step first_step
 recp run /path/to/your/recipe.yaml --from first_step
 ```
@@ -80,12 +83,14 @@ If a command fails, `recp` stops, prints a summary and exits with the exit code 
 The output is colored only when printed to a terminal. Colors can be disabled by setting the `NO_COLOR` environment variable, or forced by setting `FORCE_COLOR`.
 
 To see the steps of a recipe without running it or prompting for any value, you can use:
-```bash
+
+```
 recp show /path/to/your/recipe.yaml
 ```
 
 For further options on `recp run`, you can run:
-```bash
+
+```
 recp run --help
 ```
 
@@ -96,7 +101,7 @@ A recipe `.yaml` file can be created using a certain set of custom constructors 
 The `!input` constructor allows you to introduce user variables provided through the terminal into your recipe. It is typically used in the `env` key as exemplified below.
 
 ```yaml title="input_constructor_example.yaml"
-minimum_required_version: 0.1.0
+minimum_required_version: 0.4.0
 
 recipe:
   step:
@@ -111,17 +116,19 @@ recipe:
 
 In this case:
 
-- `name` is a **required** key with the name of the environmental variable to be provided by the user. This name can be the same as its parent key or different.
+- `name` is a **required** key with the name of the environment variable to be provided by the user. This name can be the same as its parent key or different.
 - `default` is an **optional** key. It sets the value to use if the user does not provide the variable.
 - `required` is an **optional** key. If `true`, the user must provide the variable to run the recipe.
 
 The recipe can be run as:
-```bash
+
+```
 USER_VAR="Juhani" recp run /path/to/input_constructor_example.yaml
 ```
 
 It will result in the following output:
-```bash
+
+```text
 Using recipe '/path/to/input_constructor_example.yaml' ...
 1 step(s) found
 Pre-processing recipe data ...
@@ -145,7 +152,7 @@ Summary: 1 step(s) completed, 0 failed, 0 not run
 The `!prompt` constructor works like `!input`, but instead of directly including the variable in your command, it creates a user prompt for entering a value or choice. It's usually used within the `env` key, as shown below.
 
 ```yaml title="prompt_constructor_example.yaml"
-minimum_required_version: 0.1.2
+minimum_required_version: 0.4.0
 
 recipe:
   step:
@@ -157,12 +164,14 @@ recipe:
 ```
 
 In this case `message` is a **required** key containing the message displayed to the user. You can run the recipe with:
-```bash
+
+```
 recp run /path/to/prompt_constructor_example.yaml
 ```
 
 The result will depend on what the user typed before pressing `enter`.
-```bash
+
+```text
 1 step(s) found
 Pre-processing recipe data ...
 Recipe pre-processing successfully completed
@@ -179,8 +188,9 @@ Summary: 1 step(s) completed, 0 failed, 0 not run
 ```
 
 Additionally, the input can be configured to be a set of choices:
+
 ```yaml title="prompt_constructor_example_choices.yaml"
-minimum_required_version: 0.1.2
+minimum_required_version: 0.4.0
 
 recipe:
   step:
@@ -194,8 +204,9 @@ recipe:
       - "echo 'You are a $CHOICE person'"
 ```
 
-In this case, the user can only type one of the available choices. If they enter something else, the program will prompt them to select a valid choice again. For example, if you type `cat` and `press` enter, you will get the following output:
-```bash
+In this case, the user can only type one of the available choices. If they enter something else, the program will prompt them to select a valid choice again. For example, if you type `cat` and press ++enter++, the output is:
+
+```text
 1 step(s) found
 Pre-processing recipe data ...
 Recipe pre-processing successfully completed
@@ -212,8 +223,9 @@ Summary: 1 step(s) completed, 0 failed, 0 not run
 ```
 
 Additionally, you can set a default choice using the `default` key:
+
 ```yaml title="prompt_constructor_example_choices_default.yaml"
-minimum_required_version: 0.1.2
+minimum_required_version: 0.4.0
 
 recipe:
   step:
@@ -254,7 +266,7 @@ recipe:
 The `!lines` constructor reads a text file and returns a `list` with one item per line. Leading and trailing spaces are removed, and empty lines and lines starting with `#` are ignored. Relative paths are resolved from the folder where `recp` is run.
 
 ```yaml title="lines_constructor_example.yaml"
-minimum_required_version: 0.3.0
+minimum_required_version: 0.4.0
 
 recipe:
   step:
@@ -274,7 +286,7 @@ recipe:
 The `!shell` constructor runs a command when the recipe is loaded and returns its output as a `str`. The command is run even when using `--dry-run`.
 
 ```yaml title="shell_constructor_example.yaml"
-minimum_required_version: 0.3.0
+minimum_required_version: 0.4.0
 
 recipe:
   step:
@@ -292,7 +304,7 @@ recipe:
 The `!now` constructor returns the date and time when the recipe was loaded, using a `datetime` format (`%Y-%m-%d` by default). All `!now` constructors in a recipe use the same timestamp, so the value is consistent across steps.
 
 ```yaml title="now_constructor_example.yaml"
-minimum_required_version: 0.3.0
+minimum_required_version: 0.4.0
 
 env:
   RUN_ID: !now "%Y%m%d-%H%M"
@@ -312,7 +324,7 @@ The `!expr` constructor allows using `python` expressions to be evaluated at run
 This constructor can be used in any part of your recipe as follows:
 
 ```yaml title="expr_constructor_example.yaml"
-minimum_required_version: 0.1.0
+minimum_required_version: 0.4.0
 
 recipe:
   step:
@@ -325,12 +337,13 @@ recipe:
 To run this recipe and enable the `!expr` constructor, you must use the `--unsafe` option
 as follows:
 
-```bash
+```
 recp run /path/to/expr_constructor_example.yaml --unsafe
 ```
 
 It will result in the following output:
-```bash
+
+```text
 Using recipe '/path/to/expr_constructor_example.yaml' ...
 1 step(s) found
 Pre-processing recipe data ...
@@ -350,8 +363,9 @@ Summary: 1 step(s) completed, 0 failed, 0 not run
 Modifiers are functions that take a command as input and transform it into one or more commands according to some logic. They can be used to write more compact recipes and to add variation or dynamic behavior to your commands.
 
 To use a modifier, you can include then in the `run` key as follows:
+
 ```yaml title="modifier_example.yaml"
-minimum_required_version: 0.1.0
+minimum_required_version: 0.4.0
 
 recipe:
   step:
@@ -370,7 +384,7 @@ In this case:
 
 In this example, the `repeat` modifier will be applied to the command, causing it to be run multiple times, resulting in:
 
-```bash
+```text
 Using recipe '/path/to/modifier_example.yaml' ...
 1 step(s) found
 Pre-processing recipe data ...
@@ -404,6 +418,7 @@ Replaces a token by the basename of a given path.
 | `path`   | `str`  | Path whose basename will be extracted.     |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -417,7 +432,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 The file name is file.txt
 ```
 
@@ -429,6 +445,7 @@ Generates one command per combination of the values of all tokens.
 | `**kwargs`  | `List[str]` | Keyword arguments where each key is a token and each value is a list of values. |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -442,7 +459,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 model small with seed 0
 model small with seed 1
 model large with seed 0
@@ -458,6 +476,7 @@ Replaces a token by a date in a specific format.
 | `format` | `str`  | Date format using `datetime` convention.   | `%Y-%m-%d` |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -471,7 +490,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 Today is 2026-01-06
 ```
 
@@ -490,6 +510,7 @@ Expands a command creating one copy per file in a given folder.
 | `rel_dir_token` | `str`           | Token replaced by the folder relative to `dir` (e.g. `sub`, or `.` for files directly in `dir`). |         |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -505,13 +526,15 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 /path/to/my/dir contains file /path/to/my/dir/00_file.yaml
 /path/to/my/dir contains file /path/to/my/dir/01_file.yaml
 ...
 ```
 
 The optional tokens make it possible to build an output path from each input file. For example, to convert all `.wav` files in a folder to `.flac`, keeping the same subfolders:
+
 ```yaml
 recipe:
   step:
@@ -537,6 +560,7 @@ Replaces a token by the command index value.
 | `zfill`  | `int` | Minimum width of the number, padded with leading zeros if needed. | `0`     |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -554,7 +578,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 Command number 01
 Command number 02
 Command number 03
@@ -571,6 +596,7 @@ Replaces a token value based on a matching value of a given variable.
 | `values`    | `List[str]` | List of values (correlative to `choices`). |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -588,7 +614,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 The second choice is cat
 ```
 
@@ -602,6 +629,7 @@ Replaces a token by the path to the parent directory of a given path.
 | `n`      | `int`  | Repeat this function recursively `n` times.      |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -617,7 +645,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 The parent dir of /path/to/parent_dir/file.txt is /path/to/parent_dir
 ```
 
@@ -631,6 +660,7 @@ Picks a random choice from a list.
 | `seed`    | `int | None`    | Random seed.                   |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -644,7 +674,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 My pet is a bird
 ```
 
@@ -659,6 +690,7 @@ Generates a random integer between `min` (included) and `max` (included).
 | `seed`  | `int | None` | Random seed.                     |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -673,7 +705,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 The lottery winner is the number 90
 ```
 
@@ -688,6 +721,7 @@ Generated a random float-point number within the `[min, max)` range.
 | `seed`  | `int | None` | Random seed.                                           |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -702,7 +736,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 The generated floating-point number is 0.4770061600654977
 ```
 
@@ -711,9 +746,10 @@ Replace one or multiple tokens by a given value.
 
 | Name        | Type   | Description                                                                        |
 |-------------|--------|------------------------------------------------------------------------------------|
-| `**kwargs`  | `str`  | Keyword arguments where each key is the a token and each value is the token value.<br>If a `list` of multiple values is passed, one command per value will be generated.   |
+| `**kwargs`  | `str`  | Keyword arguments where each key is a token and each value is the token value.<br>If a `list` of multiple values is passed, one command per value will be generated.   |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -727,11 +763,13 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 The bird arrived first, and then the fish came
 ```
 
 Example (multiple values):
+
 ```yaml
 recipe:
   step:
@@ -745,7 +783,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 The bird arrived first, and then the fish came
 The lizard arrived first, and then the wizard came
 ```
@@ -758,6 +797,7 @@ Repeats a command a given number of times.
 | `n`  | `int`  | Number of times to repeat the command. |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -770,7 +810,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 I tend to repeat myself
 I tend to repeat myself
 I tend to repeat myself
@@ -785,6 +826,7 @@ Runs a command only if a variable matches a given value.
 | `value` | `str`  | Expected value to run the command.     |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -803,7 +845,8 @@ recipe:
 ```
 
 Result:
-```bash
+
+```text
 The command has been executed
 ```
 
@@ -816,6 +859,7 @@ Keeps only one shard of the commands, so that they can be split across multiple 
 | `num`   | `int` | Total number of shards.                            |
 
 Example:
+
 ```yaml
 recipe:
   step:
@@ -870,45 +914,134 @@ recipe:
               stem_token: __STEM__
 ```
 
-The output of each command is printed when it finishes, so the outputs of different commands are not mixed. If a command fails, no new commands are started, and `recp` stops once the running commands finish. With `--ignore-errors`, all commands are run.
+If a command fails, no new commands are started, and `recp` stops once the running commands finish. With `--ignore-errors`, all commands are run.
 
 The `--jobs` option overrides the `parallel` key of all steps that have one. For example, `--jobs 1` runs all commands one after another, which is useful for debugging.
+
+Steps without a `parallel` key, or run with `--jobs 1`, are not affected by anything in this section: their commands write directly to the terminal, as usual.
+
+### Output modes
+The outputs of parallel commands are never mixed. How they are shown is set with the `--output` option:
+
+| Mode | Description |
+| --- | --- |
+| `auto` | Default. Uses `board` when printing to a terminal, and `grouped` otherwise (e.g. when the output is redirected to a file or in CI). |
+| `board` | Shows a live table under the output with the status, run time and last output line of each command. Progress bars of the commands are shown as they update. The full output of each command is printed above the table when it finishes. |
+| `grouped` | Prints the full output of each command when it finishes, with no live table. |
+| `prefix` | Prints output lines as they arrive, prefixed with the ID and label of their command. Progress bars are printed at most once every few seconds. |
+
+In `board` mode, a step that runs a model on four datasets, run with `--jobs 2`, looks like this while running:
+
+```text
+[1/1] Running step 'infer' ...
+      Parallel:    2 commands at a time
+      Logs:        ~/.local/state/recp/runs/20261006-111502-4512
+──────────────────────────────────────────────────────────────────────────────
+ infer  1 done · 2 running · 1 queued · 0 failed                         04:07
+ #  Status     Time     Label              Last line
+ 1  Done       03:12    --dataset clean
+ 2  Running    04:07    --dataset noisy    Processing:  58%|█████▌    | 464/800
+ 3  Running    00:55    --dataset reverb   Processing:  13%|█▎        | 104/800
+ 4  Queued     -        --dataset music
+──────────────────────────────────────────────────────────────────────────────
+```
+
+When the step finishes, the table is replaced by a summary of all commands. Steps with more than 20 commands only list the commands that did not succeed.
+
+With `--output prefix`, the same run looks like this:
+
+```text
+[1 --dataset clean] Loading model ...
+[2 --dataset noisy] Loading model ...
+[1 --dataset clean] Processing:  10%|█         | 80/800
+```
+
+### Command labels
+Each parallel command gets a short label to tell it apart from the others. By default, the label is the part of the command that differs from the other commands of the step, such as `--dataset noisy` in the example above. Labels are only inferred when all commands of the step have the same number of arguments, so a step with unrelated commands shows the commands themselves.
+
+A `label` key sets the label explicitly. Tokens replaced by the modifiers in `cmd` are also replaced in `label`:
+
+```yaml
+    run:
+      - cmd: python infer.py --input data/__SET__ --output out/__SET__
+        label: __SET__
+        apply:
+          - fn: cartesian_product
+            args:
+              __SET__: [clean, noisy, reverb, music]
+```
+
+!!! info
+    The `label` key, the live table and the `recp status`, `recp log` and `recp follow` commands were introduced in version `0.4.0`, so update your `minimum_required_version` if a recipe uses `label` and that key is present.
+
+### Following parallel commands
+The output of every parallel command is saved to a log file. The `Logs:` line printed at the start of the step shows the folder of the current run. Commands are numbered from `1` within each run, across all of its parallel steps.
+
+These commands work from another terminal while the recipe is running, or after it finishes:
+
+```
+recp status          # status of the commands of the latest run
+recp log 4           # full command and output of command 4
+recp log 4 -n 20     # last 20 lines of output of command 4
+recp follow 2        # stream the output of command 2 while it runs
+```
+
+`recp follow` waits for the command to start if it is still queued, and stops when the command finishes. Pressing ++ctrl+c++ stops following, but not the command. Its exit code is the exit code of the command.
+
+All three take a `--run` option to show an older run. To list the stored runs, use:
+
+```
+recp status --list
+```
+
+The logs of the last 20 runs are kept. This number can be changed with:
+
+```
+recp config --set runs.keep 50
+```
 
 ## Recipe shortcuts
 You can store frequently used recipes in a folder that `recp` reads automatically, and then refer to a recipe just by its name.
 
-To add a new recipe shortcut this way, simply use:
-```bash
+To add a recipe to the recipes folder, use:
+
+```
 recp config --add /path/to/your/custom_recipe.yaml
 ```
 
 Then this recipe can be run as:
-```bash
+
+```
 recp run custom_recipe
 ```
 
 You can see the folder location and other `recp` settings by running:
-```bash
+
+```
 recp config
 ```
 
 To change the default recipes folder you can use:
-```bash
+
+```
 recp config --set recipes.dir /path/to/your/new/recipes/folder
 ```
 
 To list the recipes in the recipes folder, you can use:
-```bash
+
+```
 recp list
 ```
 
 ## Editor support
 A [JSON Schema](https://raw.githubusercontent.com/eagomez2/recp/main/recipe.schema.json) for recipe files is available. With the [YAML extension](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) for VS Code, or any editor using the YAML language server, it provides autocompletion and validation of recipe files. To enable it, add the following line at the top of your recipe:
+
 ```yaml
 # yaml-language-server: $schema=https://raw.githubusercontent.com/eagomez2/recp/main/recipe.schema.json
 ```
 
 To avoid warnings about the `recp` constructors, add them to your VS Code settings:
+
 ```json
 "yaml.customTags": [
   "!input mapping", "!input scalar", "!prompt mapping", "!expr scalar",

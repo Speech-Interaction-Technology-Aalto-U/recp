@@ -10,6 +10,13 @@ from ..utils.display import (
 from ..utils.recipe import Recipe
 from ..utils.config import PackageConfig
 from ..utils.exceptions import RecpError
+from ..utils.parallel import OUTPUT_MODES
+from ..utils.runs import (
+    follow,
+    print_log,
+    print_runs,
+    print_status
+)
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -71,6 +78,79 @@ def get_parser() -> argparse.ArgumentParser:
         "-j", "--jobs",
         type=int,
         help="number of commands run at a time in steps with a 'parallel' key"
+    )
+    run_parser.add_argument(
+        "-o", "--output",
+        choices=OUTPUT_MODES,
+        default="auto",
+        help="how the output of parallel steps is shown: 'board' shows a live "
+        "table of commands, 'grouped' prints each output when its command "
+        "finishes, 'prefix' prints lines as they arrive prefixed with their "
+        "command, and 'auto' uses 'board' in a terminal and 'grouped' "
+        "otherwise"
+    )
+
+    # Status parser
+    status_parser = subparser.add_parser(
+        "status",
+        description="show the status of the parallel commands of a run",
+        help="show the status of the parallel commands of a run",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        allow_abbrev=False
+    )
+    status_parser_group = status_parser.add_mutually_exclusive_group()
+    status_parser_group.add_argument(
+        "-r", "--run",
+        type=str,
+        help="run ID (defaults to the latest run)"
+    )
+    status_parser_group.add_argument(
+        "-l", "--list",
+        action="store_true",
+        help="list stored runs"
+    )
+
+    # Log parser
+    log_parser = subparser.add_parser(
+        "log",
+        description="show the output of a parallel command",
+        help="show the output of a parallel command",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        allow_abbrev=False
+    )
+    log_parser.add_argument(
+        "id",
+        type=int,
+        help="command ID, as shown by 'recp status'"
+    )
+    log_parser.add_argument(
+        "-r", "--run",
+        type=str,
+        help="run ID (defaults to the latest run)"
+    )
+    log_parser.add_argument(
+        "-n", "--lines",
+        type=int,
+        help="only show the last N lines"
+    )
+
+    # Follow parser
+    follow_parser = subparser.add_parser(
+        "follow",
+        description="stream the output of a parallel command while it runs",
+        help="stream the output of a parallel command while it runs",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        allow_abbrev=False
+    )
+    follow_parser.add_argument(
+        "id",
+        type=int,
+        help="command ID, as shown by 'recp status'"
+    )
+    follow_parser.add_argument(
+        "-r", "--run",
+        type=str,
+        help="run ID (defaults to the latest run)"
     )
 
     # Show parser
@@ -151,6 +231,9 @@ def main() -> None:
     except (RecpError, FileNotFoundError) as e:
         exit_error(str(e))
 
+    except KeyboardInterrupt:
+        exit_error("Interrupted", code=130)
+
 
 def _main() -> None:
     # Version print
@@ -223,9 +306,31 @@ def _main() -> None:
                 from_step=args.from_step,
                 ignore_errors=args.ignore_errors,
                 dry_run=args.dry_run,
-                jobs=args.jobs
+                jobs=args.jobs,
+                output=args.output,
+                keep_runs=PackageConfig(app_name="recp").runs_keep
             )
             sys.exit(returncode)
+
+        case "status":
+            if args.list:
+                print_runs()
+
+            else:
+                print_status(run_id=args.run)
+
+        case "log":
+            if args.lines is not None and args.lines < 1:
+                exit_error("--lines should be a positive integer")
+
+            print_log(cmd_id=args.id, run_id=args.run, lines=args.lines)
+
+        case "follow":
+            try:
+                sys.exit(follow(cmd_id=args.id, run_id=args.run))
+
+            except KeyboardInterrupt:
+                sys.exit(130)
         
         case _:
             raise AssertionError

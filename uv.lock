@@ -588,7 +588,7 @@ wheels = [
 
 [[package]]
 name = "recp"
-version = "0.3.0"
+version = "0.4.0"
 source = { editable = "." }
 dependencies = [
     { name = "packaging" },
@@ -601,6 +601,7 @@ docs = [
     { name = "mkdocs" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings-python" },
+    { name = "pygments" },
 ]
 lint = [
     { name = "ruff" },
@@ -618,6 +619,7 @@ requires-dist = [
     { name = "mkdocstrings-python", marker = "extra == 'docs'", specifier = ">=2.0.1" },
     { name = "packaging", specifier = ">=25.0" },
     { name = "platformdirs", specifier = ">=4.5.1" },
+    { name = "pygments", marker = "extra == 'docs'", specifier = "!=2.20.0" },
     { name = "pytest", marker = "extra == 'test'", specifier = ">=8.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "ruff", marker = "extra == 'lint'", specifier = ">=0.6" },

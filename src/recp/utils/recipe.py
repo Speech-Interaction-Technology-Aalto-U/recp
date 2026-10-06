@@ -1,9 +1,7 @@
 import os
 import sys
 import yaml
-import threading
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from datetime import datetime
 from typing import Any
@@ -18,8 +16,16 @@ from .display import (
     exit_error,
     print_error,
     print_hint,
+    print_warning,
     style
 )
+from .parallel import (
+    Job,
+    ParallelRunner,
+    infer_labels,
+    resolve_output_mode
+)
+from .runs import RunStore
 
 
 class Recipe:
@@ -67,6 +73,9 @@ class Recipe:
 
         # Cache apply registry
         self._apply_registry = get_apply_registry()
+
+        # Logs of parallel commands, created when the first one is run
+        self._run_store = None
 
     @staticmethod
     def expandall_recursive(
@@ -368,6 +377,14 @@ class Recipe:
                             f"step {name!r}"
                         )
 
+                    if cmd.get("label") is not None and not isinstance(
+                        cmd["label"], str | int | float
+                    ):
+                        exit_error(
+                            f"Key 'label' in command #{cmd_idx} of step "
+                            f"{name!r} should be a str"
+                        )
+
                     if not all(
                         isinstance(p, str)
                         for p in make_list(cmd.get("skip_if_exists")) or []
@@ -618,18 +635,20 @@ class Recipe:
                     if isinstance(cmd, str):
                         cmd_seq.append({
                             "cmd": self.expandall_recursive(cmd),
+                            "label": "",
                             "skip_if_exists": []
                         })
 
                     elif isinstance(cmd, dict):
-                        # NOTE: The command and its skip_if_exists paths are
-                        # joined so that modifiers replace the same tokens in
-                        # all of them
+                        # NOTE: The command, its label and its skip_if_exists
+                        # paths are joined so that modifiers replace the same
+                        # tokens in all of them
                         skip_paths = make_list(cmd.get("skip_if_exists")) or []
+                        label = str(cmd.get("label") or "")
                         cmd_list = [
                             self.expandall_recursive(
                                 self.CMD_SEPARATOR.join(
-                                    [str(cmd["cmd"]), *skip_paths]
+                                    [str(cmd["cmd"]), label, *skip_paths]
                                 )
                             )
                         ]
@@ -663,11 +682,12 @@ class Recipe:
                                 )
 
                         for expanded_cmd in cmd_list:
-                            cmd_str, *skip_paths = expanded_cmd.split(
+                            cmd_str, label, *skip_paths = expanded_cmd.split(
                                 self.CMD_SEPARATOR
                             )
                             cmd_seq.append({
                                 "cmd": cmd_str,
+                                "label": label,
                                 "skip_if_exists": skip_paths
                             })
 
@@ -700,7 +720,9 @@ class Recipe:
             from_step: str | None = None,
             ignore_errors: bool = False,
             dry_run: bool = False,
-            jobs: int | None = None
+            jobs: int | None = None,
+            output: str = "auto",
+            keep_runs: int = 20
     ) -> int:
         """Run all processed commands in a recipe `.yaml` file.
 
@@ -714,10 +736,50 @@ class Recipe:
                 and not run.
             jobs (int | None): If given, overrides the number of commands run
                 in parallel in steps with a `parallel` key.
+            output (str): How the output of parallel steps is shown. One of
+                `auto`, `board`, `grouped` or `prefix`.
+            keep_runs (int): Number of runs whose parallel command logs are
+                kept.
 
         Returns:
             (int): Exit code. `0` if all commands succeeded.
         """
+        returncode = 1
+
+        try:
+            returncode = self._run(
+                tag=tag,
+                step=step,
+                from_step=from_step,
+                ignore_errors=ignore_errors,
+                dry_run=dry_run,
+                jobs=jobs,
+                output=resolve_output_mode(output),
+                keep_runs=keep_runs
+            )
+            return returncode
+
+        except KeyboardInterrupt:
+            returncode = 130
+            raise
+
+        finally:
+            if self._run_store is not None:
+                self._run_store.finish(returncode)
+                self._run_store = None
+
+    def _run(
+            self,
+            tag: tuple[str] | None,
+            step: list[str] | None,
+            from_step: str | None,
+            ignore_errors: bool,
+            dry_run: bool,
+            jobs: int | None,
+            output: str,
+            keep_runs: int
+    ) -> int:
+        """Implements `run`, see its arguments."""
         # ----------------------------------------------------------------------
         # SECTION: INPUT
         # ----------------------------------------------------------------------
@@ -843,6 +905,7 @@ class Recipe:
 
             # Skip commands whose outputs already exist
             cmds = []
+            labels = []
 
             for cmd in step_data["run"]:
                 if self._outputs_exist(cmd["skip_if_exists"], cwd=cwd):
@@ -853,6 +916,7 @@ class Recipe:
 
                 else:
                     cmds.append(cmd["cmd"])
+                    labels.append(cmd["label"])
                     continue
 
                 print(
@@ -869,10 +933,14 @@ class Recipe:
             elif num_jobs > 1:
                 returncodes = self._run_parallel(
                     cmds,
+                    labels=labels,
+                    step_name=step_name,
                     cwd=cwd,
                     env=env,
                     indent=indent,
                     num_jobs=num_jobs,
+                    output=output,
+                    keep_runs=keep_runs,
                     ignore_errors=ignore_errors
                 )
 
@@ -1004,21 +1072,30 @@ class Recipe:
     def _run_parallel(
             self,
             cmds: list[str],
+            labels: list[str],
+            step_name: str,
             cwd: str | None,
             env: dict,
             indent: str,
             num_jobs: int,
+            output: str = "grouped",
+            keep_runs: int = 20,
             ignore_errors: bool = False
     ) -> list[int]:
-        """Runs commands in parallel. The output of each command is printed
-        when it finishes so that outputs of different commands are not mixed.
+        """Runs commands in parallel. The output of each command is saved to
+        a log file, and shown as described in `ParallelRunner`.
 
         Args:
             cmds (list[str]): Commands to run.
+            labels (list[str]): Label of each command. Empty labels are
+                inferred from the commands.
+            step_name (str): Name of the step.
             cwd (str | None): Folder where the commands are run.
             env (dict): Environment variables passed to the commands.
             indent (str): Indentation used when printing.
             num_jobs (int): Maximum number of commands run at the same time.
+            output (str): One of `board`, `grouped` or `prefix`.
+            keep_runs (int): Number of runs whose logs are kept.
             ignore_errors (bool): If `True`, commands are run even after a
                 command fails. Otherwise, no new commands are started after a
                 failure, but running commands are allowed to finish.
@@ -1026,51 +1103,74 @@ class Recipe:
         Returns:
             (list[int]): Exit code of each command that was run.
         """
-        stop = threading.Event()
-        lock = threading.Lock()
-        num_done = 0
+        if len(cmds) == 0:
+            return []
 
-        def run_cmd(cmd: str) -> int | None:
-            nonlocal num_done
+        store = self._get_run_store(keep_runs=keep_runs)
+        inferred_labels = infer_labels(cmds)
+        first_id = store.next_id if store is not None else 1
+        jobs = [
+            Job(
+                id=first_id + i,
+                cmd=cmd,
+                label=label or inferred_label,
+                log_file=(
+                    store.log_file(first_id + i) if store is not None
+                    else None
+                )
+            )
+            for i, (cmd, label, inferred_label) in enumerate(
+                zip(cmds, labels, inferred_labels, strict=True)
+            )
+        ]
 
-            if stop.is_set():
-                return None
+        def save_job(job: Job) -> None:
+            store.update(job, step=step_name)
 
-            result = subprocess.run(
-                cmd,
-                shell=True,
-                cwd=cwd,
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                errors="replace"
+        if store is not None:
+            store.next_id += len(jobs)
+            print(
+                f"{indent}{style('Logs:'.ljust(13), 'dim')}"
+                f"{style(store.dir, 'cyan')}"
             )
 
-            with lock:
-                num_done += 1
-                progress_repr = f"[{num_done}/{len(cmds)}]"
-                print(
-                    f"{indent}{style('Command:'.ljust(13) + cmd, 'dim')} "
-                    f"{style(progress_repr, 'dim')}"
+            for job in jobs:
+                save_job(job)
+
+        sys.stdout.flush()
+        runner = ParallelRunner(
+            jobs,
+            cwd=cwd,
+            env=env,
+            num_jobs=num_jobs,
+            indent=indent,
+            mode=output,
+            title=step_name,
+            ignore_errors=ignore_errors,
+            on_change=save_job if store is not None else None
+        )
+        return runner.run()
+
+    def _get_run_store(self, keep_runs: int) -> RunStore | None:
+        """Returns the store for the logs of parallel commands of this run.
+
+        Args:
+            keep_runs (int): Number of runs whose logs are kept.
+
+        Returns:
+            (RunStore | None): Run store, or `None` if it cannot be created.
+        """
+        if self._run_store is None:
+            try:
+                self._run_store = RunStore(
+                    recipe_file=self.file,
+                    keep=keep_runs
                 )
-                print(result.stdout, end="", flush=True)
 
-                if result.returncode != 0:
-                    print_error(
-                        f"Command failed with exit code {result.returncode}",
-                        indent=indent
-                    )
+            except OSError as e:
+                print_warning(f"Command logs will not be saved: {e}")
 
-                    if not ignore_errors:
-                        stop.set()
-
-            return result.returncode
-
-        with ThreadPoolExecutor(max_workers=num_jobs) as executor:
-            returncodes = list(executor.map(run_cmd, cmds))
-
-        return [rc for rc in returncodes if rc is not None]
+        return self._run_store
 
     @staticmethod
     def _describe_env(env: dict) -> str:

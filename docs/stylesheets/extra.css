@@ -1,0 +1,449 @@
+/* recp docs theme: ink and teal from the logo, and a landing page on the
+   home page. */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&display=swap");
+
+:root {
+  --recp-ink: #1f2328;
+  --recp-ink-2: #2a3036;
+  --recp-teal: #2dd4bf;
+  --recp-display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+}
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--recp-ink);
+  --md-primary-fg-color--light: var(--recp-ink-2);
+  --md-primary-fg-color--dark: #15181c;
+  --md-primary-bg-color: #f3f6f5;
+  --md-primary-bg-color--light: #f3f6f5b3;
+  --md-accent-fg-color: #0f8f80;
+  --md-accent-fg-color--transparent: #0f8f801a;
+  --md-default-bg-color: #fbfcfc;
+  --md-default-fg-color: #1f2328;
+  --md-default-fg-color--light: #4d5760;
+  --md-typeset-color: #262c31;
+  --md-typeset-a-color: #0d7d70;
+  --md-code-bg-color: #f0f4f3;
+  --md-code-fg-color: #24313a;
+  --md-footer-bg-color: var(--recp-ink);
+  --md-footer-bg-color--dark: #15181c;
+  --recp-line: #dfe6e4;
+  --recp-soft: #eef4f2;
+  --recp-inline-code: #e5f3f0;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-hue: 205;
+  --md-primary-fg-color: #101316;
+  --md-primary-fg-color--light: #1a1e22;
+  --md-primary-fg-color--dark: #0b0d0f;
+  --md-primary-bg-color: #e8eef0;
+  --md-primary-bg-color--light: #e8eef0b3;
+  --md-accent-fg-color: #5eead4;
+  --md-accent-fg-color--transparent: #5eead41a;
+  --md-default-bg-color: #14171a;
+  --md-default-fg-color--light: #a3afb7;
+  --md-typeset-color: #d9e1e5;
+  --md-typeset-a-color: #3ddcc6;
+  --md-code-bg-color: #1b1f23;
+  --md-code-fg-color: #d4dde2;
+  --md-footer-bg-color: #0d0f12;
+  --md-footer-bg-color--dark: #090b0d;
+  --recp-line: #2a3035;
+  --recp-soft: #1a1f23;
+  --recp-inline-code: #1d2a2b;
+}
+
+/* -------------------------------------------------------------------------
+   Header, tabs and navigation
+   ------------------------------------------------------------------------- */
+.md-header {
+  box-shadow: none;
+}
+
+.md-tabs {
+  border-bottom: 2px solid var(--recp-teal);
+}
+
+.md-header__topic:first-child {
+  font-family: var(--recp-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.md-tabs__link {
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.md-tabs__item--active .md-tabs__link {
+  opacity: 1;
+  color: var(--recp-teal);
+}
+
+.md-search__form {
+  border-radius: 8px;
+}
+
+.md-nav__link--active,
+.md-nav__item .md-nav__link--active {
+  color: var(--md-typeset-a-color);
+  font-weight: 600;
+}
+
+.md-nav--secondary .md-nav__link {
+  border-left: 2px solid transparent;
+  padding-left: 0.5rem;
+  margin-left: -0.6rem;
+}
+
+.md-nav--secondary .md-nav__link--active {
+  border-left-color: var(--md-typeset-a-color);
+}
+
+/* -------------------------------------------------------------------------
+   Typography
+   ------------------------------------------------------------------------- */
+.md-typeset {
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  font-family: var(--recp-display);
+  color: var(--md-typeset-color);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.md-typeset h1 {
+  font-weight: 800;
+  font-size: 2.1em;
+  margin-bottom: 0.8em;
+}
+
+.md-typeset h2 {
+  font-weight: 700;
+  font-size: 1.45em;
+  margin-top: 2.2em;
+  padding-top: 1.1em;
+  border-top: 1px solid var(--recp-line);
+}
+
+.md-typeset h3 {
+  font-weight: 700;
+  font-size: 1.12em;
+}
+
+/* Modifier and constructor names read as code */
+.md-typeset h3[id] {
+  font-family: var(--md-code-font-family), monospace;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.md-typeset a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--md-typeset-a-color) 35%, transparent);
+  text-underline-offset: 0.18em;
+}
+
+.md-typeset a:hover {
+  text-decoration-color: currentcolor;
+}
+
+.md-typeset .headerlink,
+.md-typeset .md-button {
+  text-decoration: none;
+}
+
+.md-typeset :not(pre) > code {
+  background: var(--recp-inline-code);
+  border-radius: 5px;
+  padding: 0.1em 0.38em;
+  font-size: 0.86em;
+}
+
+/* -------------------------------------------------------------------------
+   Code blocks
+   ------------------------------------------------------------------------- */
+.md-typeset .highlight,
+.md-typeset pre {
+  border-radius: 10px;
+}
+
+.md-typeset pre > code {
+  border: 1px solid var(--recp-line);
+  border-radius: 10px;
+  padding: 0.9em 1.1em;
+}
+
+.md-typeset .highlight span.filename {
+  font-family: var(--md-code-font-family), monospace;
+  font-weight: 500;
+  font-size: 0.78em;
+  background: var(--recp-soft);
+  border: 1px solid var(--recp-line);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  padding: 0.55em 1.1em;
+}
+
+.md-typeset .highlight span.filename + pre > code {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Tables, admonitions and keys
+   ------------------------------------------------------------------------- */
+.md-typeset table:not([class]) {
+  border: 1px solid var(--recp-line);
+  border-radius: 10px;
+  box-shadow: none;
+  font-size: 0.74rem;
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--recp-soft);
+  font-weight: 600;
+}
+
+.md-typeset table:not([class]) td,
+.md-typeset table:not([class]) th {
+  border-top-color: var(--recp-line);
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  border-width: 0 0 0 3px;
+  border-radius: 8px;
+  box-shadow: none;
+  background: var(--recp-soft);
+  font-size: 0.76rem;
+}
+
+.md-typeset .admonition-title,
+.md-typeset summary {
+  background: transparent !important;
+  font-weight: 600;
+}
+
+.md-typeset kbd {
+  font-size: 0.78em;
+}
+
+/* -------------------------------------------------------------------------
+   Home page
+   ------------------------------------------------------------------------- */
+.recp-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 2.4rem;
+  align-items: center;
+  margin: 0.6rem 0 2.4rem;
+}
+
+.recp-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-family: var(--md-code-font-family), monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--md-typeset-a-color);
+}
+
+.recp-hero__eyebrow img {
+  width: 1.9rem;
+  height: 1.9rem;
+}
+
+.md-typeset .recp-hero h1 {
+  display: block;
+  font-size: 2.1rem;
+  line-height: 1.05;
+  margin: 0.45em 0 0.4em;
+}
+
+.md-typeset .recp-hero h1 em {
+  font-style: normal;
+  color: var(--md-typeset-a-color);
+}
+
+.recp-hero__lede {
+  font-size: 0.95rem;
+  color: var(--md-default-fg-color--light);
+  max-width: 34em;
+}
+
+.recp-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.3rem;
+}
+
+.md-typeset .recp-hero .md-button {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.55em 1.3em;
+  margin: 0;
+}
+
+.md-typeset .recp-hero .md-button--primary {
+  background: var(--recp-ink);
+  border-color: var(--recp-ink);
+  color: #fff;
+}
+
+[data-md-color-scheme="slate"] .md-typeset .recp-hero .md-button--primary {
+  background: var(--recp-teal);
+  border-color: var(--recp-teal);
+  color: #0d1214;
+}
+
+.md-typeset .recp-hero .md-button--primary:hover {
+  background: var(--md-accent-fg-color);
+  border-color: var(--md-accent-fg-color);
+}
+
+.md-typeset .recp-hero > div:first-child .highlight {
+  margin-top: 1.1rem;
+  max-width: 22rem;
+}
+
+.recp-hero__output {
+  min-width: 0;
+  width: 100%;
+}
+
+.md-typeset .recp-hero__output .highlight {
+  margin: 0;
+  width: 100%;
+}
+
+.md-typeset .recp-hero__output pre {
+  margin: 0;
+  font-size: 0.66rem;
+}
+
+/* The example on the home page looks like a terminal window in both color
+   schemes */
+.md-typeset .recp-hero__output .highlight {
+  --md-code-bg-color: #16191d;
+  --md-code-fg-color: #d7dee3;
+  background: #16191d;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 18px 50px -20px #0b0d0f66;
+}
+
+.md-typeset .recp-hero__output .highlight span.filename {
+  position: relative;
+  background: #22272c;
+  border-color: #22272c;
+  color: #8b979f;
+  padding-left: 5.2em;
+}
+
+.md-typeset .recp-hero__output .highlight span.filename::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 1.1em;
+  width: 0.7em;
+  height: 0.7em;
+  margin-top: -0.35em;
+  border-radius: 50%;
+  background: #ff6159;
+  box-shadow: 1.1em 0 0 #ffbd2e, 2.2em 0 0 #28c941;
+}
+
+.md-typeset .recp-hero__output pre > code {
+  border-color: #16191d;
+}
+
+.md-typeset .recp-hero__output .md-code__nav,
+.md-typeset .recp-hero__output .md-clipboard {
+  background: transparent;
+  color: #6b767e;
+}
+
+/* Feature cards */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid > .card {
+  border: 1px solid var(--recp-line);
+  border-radius: 12px;
+  background: var(--md-default-bg-color);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-typeset-a-color);
+  box-shadow: none;
+  transform: translateY(-2px);
+}
+
+.md-typeset .grid.cards .twemoji {
+  color: var(--md-typeset-a-color);
+}
+
+.md-typeset .grid.cards strong {
+  font-family: var(--recp-display);
+  font-size: 1.05em;
+}
+
+.md-typeset .grid.cards hr {
+  margin: 0.5em 0;
+  border-color: var(--recp-line);
+}
+
+@media screen and (max-width: 76.1875em) {
+  .recp-hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.6rem;
+  }
+}
+
+@media screen and (max-width: 30em) {
+  .md-typeset .recp-hero h1 {
+    font-size: 1.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md-typeset .grid.cards > ul > li {
+    transition: none;
+  }
+
+  .md-typeset .grid.cards > ul > li:hover {
+    transform: none;
+  }
+}
+
+.md-typeset .recp-hero .md-button:not(.md-button--primary) {
+  color: var(--md-typeset-color);
+  border-color: var(--recp-line);
+  border-width: 1.5px;
+}
+
+.md-typeset .recp-hero .md-button:not(.md-button--primary):hover {
+  color: var(--md-typeset-a-color);
+  border-color: var(--md-typeset-a-color);
+  background: transparent;
+}
+
+@media screen and (min-width: 45em) {
+  .md-typeset .grid.recp-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.md-typeset table:not([class]) td:first-child code {
+  white-space: nowrap;
+}
+
+

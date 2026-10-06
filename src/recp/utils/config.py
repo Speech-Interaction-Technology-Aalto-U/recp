@@ -17,6 +17,8 @@ class PackageConfig:
         app_name (str): Application name.
         app_author (str): Application author name.
     """
+    DEFAULT_PARAMS = {"runs.keep": 20}
+
     def __init__(
             self,
             app_name: str,
@@ -34,6 +36,10 @@ class PackageConfig:
         
         with open(self.config_file) as f:
             self.config = json.load(f)
+
+        # Parameters added after the configuration file was created
+        for k, v in self.DEFAULT_PARAMS.items():
+            self.config.setdefault(k, v)
         
     @property
     def recipes_dir(self) -> str:
@@ -43,6 +49,15 @@ class PackageConfig:
             (str): Folder where user recipes are stored.
         """
         return self.config["recipes.dir"]
+
+    @property
+    def runs_keep(self) -> int:
+        """Returns the number of runs whose parallel command logs are kept.
+
+        Returns:
+            (int): Number of runs kept.
+        """
+        return self.config["runs.keep"]
 
     def maybe_reset_default_config(self) -> None:
         """Restores the default package configuration if it does not exist."""
@@ -88,7 +103,19 @@ class PackageConfig:
                     raise FolderNotFoundError(f"Invalid folder {value!r}")
                 
                 self.config[param] = value
-            
+
+            case "runs.keep":
+                try:
+                    value = int(value)
+
+                except ValueError:
+                    value = 0
+
+                if value < 1:
+                    raise RecpError("runs.keep should be a positive integer")
+
+                self.config[param] = value
+
             case _:
                 raise AssertionError
         

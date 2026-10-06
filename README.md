@@ -2,35 +2,47 @@
   <img src="https://raw.githubusercontent.com/eagomez2/recp/main/docs/assets/logo.svg" alt="recp logo" width="160">
 </p>
 
-# `recp` A tool for automating command line recipes
-`recp` (short for recipe) is a tool designed to automate processes that involve executing multiple sequential command-line steps. A recipe is defined in a `.yaml` file, which outlines the steps to be performed. Each step can include tags, a description, a set of environment variables to be set for that step, a working directory, and one or more commands to be executed. Additionally, commands can be preprocessed, allowing a single instruction to be expanded into multiple commands, thereby eliminating the need for tedious repeated and error-prone manual steps or scripts lacking flexibility.
+# `recp`: command-line pipelines defined in YAML
+`recp` (short for recipe) runs processes made of multiple command-line steps. A recipe is a `.yaml` file that lists the steps to run. Each step can have tags, a description, environment variables, a working folder and one or more commands. Commands can be pre-processed with modifiers, so that a single command template is expanded into many commands, e.g. one per file in a folder or one per combination of parameter values.
 
-A single recipe  `.yaml` file can define multiple steps, which can be selected or filtered based on the task at hand. This flexibility allows you to execute only a subset of a larger recipe when needed. The `--dry-run` option enables generating the commands without actually running them, allowing you to verify that everything works as expected before executing time-consuming processes. If a step fails, the recipe can be resumed from that step with the `--from` option. Commands can also run in parallel and skip outputs that already exist, which is useful when processing large datasets.
+A recipe can contain many steps, and a subset of them can be selected by name or tag. The `--dry-run` option prints the commands without running them, and a failed run can be resumed from a given step with `--from`. Commands of a step can run in parallel, and commands whose outputs already exist can be skipped, which is useful when processing large datasets.
 
-# Installation
-You can directly install it using `pip`
-```bash
-pip install recp
+While the commands of a parallel step run, `recp` shows a table with the status and last output line of each command. Their output is saved, so it can be read later or followed from another terminal:
+
+```
+recp run recipe.yaml --jobs 4                   # run up to 4 commands at a time in parallel steps
+recp status                                     # status of the commands of the latest run
+recp log 3                                      # output of command 3
+recp follow 2                                   # stream the output of command 2 while it runs
 ```
 
-or with `uv`
-```bash
+# Installation
+`recp` is best installed as a [`uv` tool](https://docs.astral.sh/uv/concepts/tools/):
+
+```
 uv tool install recp
 ```
 
+It can also be installed with `pip`:
+
+```
+pip install recp
+```
+
 # Quickstart
-Check the quickstart guide [here](https://eagomez2.github.io/recp/).
+See the [quickstart guide](https://eagomez2.github.io/recp/quickstart/).
 
 # Documentation
-The `recp` documentation is available online [here](https://eagomez2.github.io/recp/). You can also view it locally by running:
-```bash
-mkdocs serve
+The `recp` documentation is available [online](https://eagomez2.github.io/recp/). You can also build and view it locally by running:
+
+```
+uv run --extra docs mkdocs serve
 ```
 
 # Cite
-If this package contributed to your work, please consider citing it:
+If `recp` contributed to your work, please consider citing it:
 
-```
+```bibtex
 @misc{recp,
   author = {Esteban Gómez},
   title  = {recp},

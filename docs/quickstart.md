@@ -1,9 +1,9 @@
 # Quickstart
 
-If you haven't installed `recp` yet, please refer to our [Installation](install.md) guide before proceeding. This guide will help you get up and running with `recp`.
+This guide assumes that `recp` is installed (see [Installation](install.md)). It shows how to write and run a minimal recipe, and then some typical pipelines.
 
 ## Minimal recipe
-`recp` works by parsing a **recipe file** file describing the steps you want to run. A **recip file** is a `.yaml` file with a defined structure. A minimal example is shown below:
+`recp` works by parsing a **recipe file** describing the steps you want to run. A **recipe file** is a `.yaml` file with a defined structure. A minimal example is shown below:
 
 ```yaml title="minimal.yaml"
 recipe:
@@ -19,16 +19,18 @@ recipe:
 In this example:
 
 - `recipe` is the root key specifying your recipe.
-- `first_step` and `second_step` are the steps of your recipe `.yaml` file. A recipe file can contain multilpe steps.
+- `first_step` and `second_step` are the steps of your recipe `.yaml` file. A recipe file can contain multiple steps.
 - `run` is the key specifying what commands are run for each step. A single step can have multiple commands.
 
 To run this recipe, save it as `minimal.yaml` and run it as follows:
-```bash
+
+```
 recp run /path/to/your/recipe/minimal.yaml
 ```
 
 If you run it, you should see the following output:
-```bash
+
+```text
 Using recipe '/path/to/your/recipe/minimal.yaml' ...
 2 step(s) found
 Pre-processing recipe data ...
@@ -53,7 +55,7 @@ This output shows how your recipe file was parsed and then run step by step. So 
 Let's take our example one step further by adding some additional instructions to our `.yaml` recipe file:
 
 ```yaml title="minimal.yaml"
-minimum_required_version: 0.1.0
+minimum_required_version: 0.4.0
 
 recipe:
   first_step:
@@ -86,12 +88,14 @@ In the `run` section, we use this variable as `$YOUR_NAME`. This shows how to ca
 your recipes with outdated `recp` versions.
 
 To run this recipe, update your previous `minimal.yaml` file, and run it as follows:
-```bash
+
+```
 MY_NAME="Olavi" recp run /path/to/your/recipe/minimal.yaml
 ```
 
 You should see the following output:
-```bash
+
+```text
 Using recipe '/path/to/your/recipe/minimal.yaml' ...
 2 step(s) found
 Pre-processing recipe data ...
@@ -112,7 +116,7 @@ Summary: 2 step(s) completed, 0 failed, 0 not run
 
 Here you can see that both steps run correctly and show the expected values. The environment variable `MY_NAME` and the date modifier are both replaced as intended. If `MY_NAME` is not set, the default value `Juhani` is used.
 
-This is just a small glimpse of what `recp` can do. For further details about the structure of a `.yaml` recipe and the available modifiers, please go to the [Reference](reference.md) section.
+For the full structure of a recipe and the list of constructors and modifiers, see the [Reference](reference.md).
 
 ## Example pipelines
 The examples below show how the features of `recp` combine in typical pipelines. They can be used as a starting point for your own recipes.
@@ -121,7 +125,7 @@ The examples below show how the features of `recp` combine in typical pipelines.
 This recipe resamples all `.wav` files of a corpus to 16 kHz, keeping the folder structure, and then extracts features from the result. Files that were already resampled are skipped, so the recipe can be run again after it stops or after new files are added to the corpus.
 
 ```yaml title="prepare_corpus.yaml"
-minimum_required_version: 0.3.0
+minimum_required_version: 0.4.0
 
 env:
   CORPUS_DIR: !input {name: CORPUS_DIR, required: true}
@@ -149,9 +153,11 @@ recipe:
       - python extract_features.py $OUTPUT_DIR/16k $OUTPUT_DIR/features
 ```
 
-```bash
+```
 CORPUS_DIR=/data/corpus recp run prepare_corpus.yaml
 ```
+
+Since the `resample` step has a `parallel` key, `recp` shows a live table with the status of each file while it runs, and `recp follow <id>` streams the output of one command from another terminal. See [Parallel commands](reference.md#parallel-commands) for details.
 
 ### Running on a cluster
 The same recipe can be split across the jobs of a SLURM array job with the `shard` modifier. Each job processes a different subset of the files:
@@ -171,7 +177,7 @@ The same recipe can be split across the jobs of a SLURM array job with the `shar
               num: 20
 ```
 
-```bash
+```
 sbatch --array=0-19 --wrap "recp run prepare_corpus.yaml --step resample"
 ```
 
@@ -179,7 +185,7 @@ sbatch --array=0-19 --wrap "recp run prepare_corpus.yaml --step resample"
 This recipe trains every combination of models and seeds, and stores the results of each run in a folder named after the date and time when the recipe was started.
 
 ```yaml title="sweep.yaml"
-minimum_required_version: 0.3.0
+minimum_required_version: 0.4.0
 
 env:
   RUN_DIR: !now "runs/%Y%m%d-%H%M"
